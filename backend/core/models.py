@@ -16,6 +16,63 @@ class OpenAiChatSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    """
+    Info around the below helper methods :-
+     - The logic is going to be :-
+     - Getting the last request, taking all of the messages, inserting the last
+       response to that, and then creating a new array (i.e list) of messages that
+       we can send for the next request.
+
+    """
+
+    def get_last_request(self):
+        """Return the most recent OpenAiRequest or None"""
+        return self.openairequest_set.all().order_by('-created_at').first()
+
+    def _create_message(self, message, role="user"):
+        """Create a message for the AI."""
+        return {"role": role, "content": message}
+
+    def create_first_message(self, message):
+        """Create the first message in the session."""
+        return [
+            self._create_message(
+                "You are a snarky and unhelpful assistant.",
+                "system"
+            ),
+            self._create_message(message, "user")
+        ]
+
+    def messages(self):
+        """Return messages in the conversation including the AI response."""
+        all_messages = []
+        request = self.get_last_request()
+
+        if request:
+            all_messages.extend(request.messages)
+            try:
+                all_messages.append(request.response["choices"][0]["message"])
+            except (KeyError, TypeError, IndexError):
+                pass
+
+        return all_messages
+
+    def send(self, message):
+        """Send a message to the AI."""
+        last_request = self.get_last_request()
+
+        if not last_request:
+            OpenAiRequest.objects.create(
+                session=self, messages=self.create_first_message(message))
+        elif last_request.status in [OpenAiRequest.COMPLETE, OpenAiRequest.FAILED]:
+            OpenAiRequest.objects.create(
+                session=self,
+                messages=self.messages() + [
+                    self._create_message(message, "user")
+                ]
+            )
+        else:
+            return
 
 class OpenAiRequest(models.Model):
     """Represents an AI request."""
