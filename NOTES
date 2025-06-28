@@ -1,3 +1,5 @@
+Initial Design Code ( Before integrating API -- the chat interface )
+
 import { useState } from "react";
 
 import "./App.css";
@@ -43,3 +45,22 @@ function App() {
 }
 
 export default App;
+
+
+
+
+setMessage & setMessages Explanation
+
+
+ - Essentially we define two pieces of state. The `message` which is used to store the message
+   that's been typed in by user.
+
+ - That's the message that we type in the box. The way that React works is if we want to do
+   what's called a controlled component which means we keep track of the input that has been
+   entered into that component, then we need to store it as state and need to update it using
+   setMessage, the setter for the state update essentially.
+
+
+
+
+
