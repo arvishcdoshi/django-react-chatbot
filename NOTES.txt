@@ -64,3 +64,12 @@ setMessage & setMessages Explanation
 
 
 
+
+   const [sessionId, setSessionId] = useState(null);
+
+
+By default, the sessionId is null when they first render this component.
+
+Now, what we'll do is we will add some logic to basically poll the session for messages & update the messages when
+we get new messages from the session. So, we'll do that using useEffect.
+
